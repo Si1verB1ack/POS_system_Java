@@ -58,7 +58,6 @@ public class ReportPanel extends javax.swing.JPanel {
                 select 
                                         i.invoice_id,
                                         customer_name,
-                                        product_name,
                                         total_amount,
                                         qty_ordered,
                                         date_recorded,
@@ -78,13 +77,12 @@ public class ReportPanel extends javax.swing.JPanel {
                 while (rs.next()) {
                     int iid = rs.getInt("invoice_id");
                     String cusname = rs.getString("customer_name");
-                    String pname = rs.getString("product_name");
                     Float total = rs.getFloat("total_amount");
                     int qtyordered = rs.getInt("qty_ordered");
                     String dateOrdered = rs.getString("date_recorded");
                     String status = rs.getString("status");
 
-                    Object[] rowData = {iid, cusname, pname, qtyordered, total, dateOrdered, status};
+                    Object[] rowData = {iid, cusname, qtyordered, total, dateOrdered, status};
 
                     model.addRow(rowData);
                 }
@@ -129,11 +127,11 @@ public class ReportPanel extends javax.swing.JPanel {
 
             },
             new String [] {
-                "Sale ID", "Buyer", "Product", "Qty", "Total", "Date Recoreded", "Status"
+                "Sale ID", "Buyer", "Qty", "Total", "Date Recoreded", "Status"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, true, false, false
+                false, false, false, true, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -145,13 +143,12 @@ public class ReportPanel extends javax.swing.JPanel {
             jtProductList.getColumnModel().getColumn(0).setPreferredWidth(60);
             jtProductList.getColumnModel().getColumn(0).setMaxWidth(60);
             jtProductList.getColumnModel().getColumn(1).setPreferredWidth(175);
-            jtProductList.getColumnModel().getColumn(2).setPreferredWidth(150);
-            jtProductList.getColumnModel().getColumn(3).setPreferredWidth(75);
-            jtProductList.getColumnModel().getColumn(4).setPreferredWidth(100);
-            jtProductList.getColumnModel().getColumn(4).setMaxWidth(100);
-            jtProductList.getColumnModel().getColumn(5).setPreferredWidth(125);
-            jtProductList.getColumnModel().getColumn(5).setMaxWidth(125);
-            jtProductList.getColumnModel().getColumn(6).setPreferredWidth(75);
+            jtProductList.getColumnModel().getColumn(2).setPreferredWidth(75);
+            jtProductList.getColumnModel().getColumn(3).setPreferredWidth(100);
+            jtProductList.getColumnModel().getColumn(3).setMaxWidth(100);
+            jtProductList.getColumnModel().getColumn(4).setPreferredWidth(125);
+            jtProductList.getColumnModel().getColumn(4).setMaxWidth(125);
+            jtProductList.getColumnModel().getColumn(5).setPreferredWidth(75);
         }
 
         txtId.setFont(new java.awt.Font("Serif", 0, 18)); // NOI18N
@@ -220,7 +217,6 @@ public class ReportPanel extends javax.swing.JPanel {
              select 
                 i.invoice_id,
                 customer_name,
-                product_name,
                 total_amount,
                 qty_ordered,
                 date_recorded,
@@ -242,13 +238,12 @@ public class ReportPanel extends javax.swing.JPanel {
         while (rs.next()) {
             int iid = rs.getInt("invoice_id");
             String cusname = rs.getString("customer_name");
-            String pname = rs.getString("product_name");
             Float total = rs.getFloat("total_amount");
             int qtyordered = rs.getInt("qty_ordered");
             String dateOrdered = rs.getString("date_recorded");
             String status = rs.getString("status");
 
-            Object[] rowData = {iid, cusname, pname, qtyordered, total, dateOrdered, status};
+            Object[] rowData = {iid, cusname, qtyordered, total, dateOrdered, status};
 
             model.addRow(rowData);
         }

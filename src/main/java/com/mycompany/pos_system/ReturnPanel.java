@@ -4,10 +4,12 @@
  */
 package com.mycompany.pos_system;
 
+import java.util.List;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -168,34 +170,45 @@ public class ReturnPanel extends javax.swing.JPanel {
 
     private void btnReturnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReturnActionPerformed
         int selectedIndex = jtProductList.getSelectedRow();
-        if(selectedIndex != -1){
+    if(selectedIndex != -1){
         Connection con = null;
         PreparedStatement stmt = null;  
         ResultSet rs = null;
         
-        int invoiceId =Integer.parseInt(jtProductList.getValueAt(selectedIndex, 0).toString());
-
+        int invoiceId = Integer.parseInt(jtProductList.getValueAt(selectedIndex, 0).toString());
+        float returnedQty = getQtyOrderByInvoiceId(invoiceId); // Assuming this method retrieves the returned quantity
+        
+        List<Integer> productIds = new ArrayList<>();
+ // List to store product IDs
         
         try {
-            
             con = DB_Connection.getConnection();
             
-            stmt = con.prepareStatement("UPDATE tblinvoice"
-                    + " SET status=? "
-                    + " WHERE invoice_id=?");
-
+            // Retrieve the product IDs from tblsales
+            stmt = con.prepareStatement("SELECT product_id FROM tblsales WHERE invoice_id = ?");
+            stmt.setInt(1, invoiceId);
+            rs = stmt.executeQuery();
+            
+            // Collect all product IDs associated with the invoice
+            while (rs.next()) {
+                productIds.add(rs.getInt("product_id"));
+            }
+            
+            stmt = con.prepareStatement("UPDATE tblinvoice SET status=? WHERE invoice_id=?");
             stmt.setString(1, "returned");
             stmt.setInt(2, invoiceId);
-            
             stmt.executeUpdate();
-            int qtyOrderd = getQtyOrderByInvoiceId(invoiceId);
-            updateQty(qtyOrderd,qtyOrderd);
+            
+            // Update the quantity in stock for all returned products
+            for (int productId : productIds) {
+                updateQty(productId, returnedQty);
+            }
+            
             JOptionPane.showMessageDialog(this, "Customer has been updated successfully");
-        
             model.setRowCount(0);
             showData();
             if (model.getRowCount() > 0) {
-                        jtProductList.scrollRectToVisible(jtProductList.getCellRect(model.getRowCount() - 1, 0, true));
+                jtProductList.scrollRectToVisible(jtProductList.getCellRect(model.getRowCount() - 1, 0, true));
             }
         } catch (SQLException ex) {
             ex.printStackTrace(); // Handle exception properly, maybe log it or show an error message
@@ -208,38 +221,40 @@ public class ReturnPanel extends javax.swing.JPanel {
                 ex.printStackTrace(); // Handle exception properly, maybe log it or show an error message
             }
         }
-        }
+    }
     }//GEN-LAST:event_btnReturnActionPerformed
-    private void updateQty(int qtyInStock,int qtyRefunded){
-        int selectedIndex = jtProductList.getSelectedRow();
-        if(selectedIndex != -1){
-            Connection con = null;
-            PreparedStatement stmt = null;  
-            ResultSet rs = null;
-            int productId =Integer.parseInt(jtProductList.getValueAt(selectedIndex, 0).toString());
+        private void updateQty(int productId, float returnedQty) {
+        Connection con = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
+        try {
+            con = DB_Connection.getConnection();
+            // Get the current quantity in stock for the product
+            stmt = con.prepareStatement("SELECT qty_in_stock FROM tblproduct WHERE product_id = ?");
+            stmt.setInt(1, productId);
+            rs = stmt.executeQuery();
 
-            try {
+            if (rs.next()) {
+                float currentQtyInStock = rs.getFloat("qty_in_stock");
+                // Update the quantity in stock by adding the returned quantity
+                float updatedQtyInStock = currentQtyInStock + returnedQty;
 
-                con = DB_Connection.getConnection();
-                stmt = con.prepareStatement("UPDATE tblproduct"
-                        + " SET qty_in_stock=?"
-                        + " WHERE product_id=?");
-
-                stmt.setFloat(1, qtyInStock+qtyRefunded);
-                stmt.setInt(2, productId); // You need to replace 'productId' with the actual product ID you want to update
-
+                // Update the tblproduct table with the new quantity in stock
+                stmt = con.prepareStatement("UPDATE tblproduct SET qty_in_stock = ? WHERE product_id = ?");
+                stmt.setFloat(1, updatedQtyInStock);
+                stmt.setInt(2, productId);
                 stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(); // Handle exception properly, maybe log it or show an error message
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (con != null) con.close();
             } catch (SQLException ex) {
                 ex.printStackTrace(); // Handle exception properly, maybe log it or show an error message
-            } finally {
-                try {
-                    if (rs != null) rs.close();
-                    if (stmt != null) stmt.close();
-                    if (con != null) con.close();
-                } catch (SQLException ex) {
-                    ex.printStackTrace(); // Handle exception properly, maybe log it or show an error message
-                }
             }
         }
     }

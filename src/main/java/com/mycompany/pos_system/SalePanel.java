@@ -552,6 +552,7 @@ public class SalePanel extends javax.swing.JPanel {
                             Object[] rowData = {Id,Pname,qty,unitprice,cusId};
                             ordertbl.addRow(rowData); 
                             jtProductList.setValueAt(Integer.parseInt(jtProductList.getValueAt(selectedIndex, 2).toString())-Integer.parseInt(qty),selectedIndex, 2);
+                            updateQty(Integer.parseInt(qty));
                             clear();
                         } catch (Exception ex) {
                            JOptionPane.showMessageDialog(this, ex.getMessage());// Handle exception properly, maybe log it or show an error message
